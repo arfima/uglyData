@@ -2,17 +2,26 @@ import os
 import s3fs
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
+from typing import Optional
 
 router = APIRouter(prefix="/s3", tags=["s3"])
 
+_fs: Optional[s3fs.S3FileSystem] = None
 
-def _fs() -> s3fs.S3FileSystem:
-    return s3fs.S3FileSystem(
-        anon=False,
-        key=os.environ.get("ACCESS_KEY"),
-        secret=os.environ.get("SECRET_KEY"),
-        client_kwargs={"endpoint_url": os.environ.get("S3_ENDPOINT")},
-    )
+
+def get_fs() -> s3fs.S3FileSystem:
+    """Singleton del filesystem S3."""
+    global _fs
+    if _fs is None:
+        _fs = s3fs.S3FileSystem(
+            anon=False,
+            key=os.getenv("AWS_ACCESS_KEY_ID"),
+            secret=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            token=os.getenv("AWS_SESSION_TOKEN"),
+            client_kwargs={"endpoint_url": os.getenv("S3_ENDPOINT")},
+            config_kwargs={"s3": {"addressing_style": "path"}},
+        )
+    return _fs
 
 
 BUCKET = os.environ.get("BUCKET", "nuts")
@@ -30,7 +39,7 @@ async def list_files(
         None, description="Key desde la que continuar (paginación)"
     ),
 ):
-    fs = _fs()
+    fs = get_fs()
     base = f"{BUCKET}/{prefix}".rstrip("/")
     try:
         entries = fs.find(base) if recursive else fs.ls(base, detail=True)
@@ -61,7 +70,7 @@ async def list_files(
 @router.get("/download")
 async def download_file(key: str, as_text: bool = True):
     """Descarga/streaming de un objeto por key relativa (sin el bucket)."""
-    fs = _fs()
+    fs = get_fs()
     path = f"{BUCKET}/{key}".lstrip("/")
     if not fs.exists(path):
         raise HTTPException(status_code=404, detail="No existe el objeto solicitado")
@@ -74,7 +83,7 @@ async def download_file(key: str, as_text: bool = True):
 @router.put("/upload")
 async def upload_file(key: str, request: Request):
     """Sube/overwrite un objeto (body = bytes)."""
-    fs = _fs()
+    fs = get_fs()
     path = f"{BUCKET}/{key}".lstrip("/")
     body = await request.body()
     with fs.open(path, "wb") as f:
