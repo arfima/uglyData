@@ -144,10 +144,10 @@ def run(
 
     app.mount("/api/v1", app_v1)
 
-    os.environ["MINIO_BUCKET"] = bucket
-    os.environ["MINIO_ACCESS_KEY"] = access_key
-    os.environ["MINIO_SECRET_KEY"] = secret_key
-    os.environ["MINIO_S3_ENDPOINT"] = s3_endpoint
+    os.environ["BUCKET"] = bucket
+    os.environ["ACCESS_KEY"] = access_key
+    os.environ["SECRET_KEY"] = secret_key
+    os.environ["S3_ENDPOINT"] = s3_endpoint
     os.environ["API_DB_CONN_INFO"] = api_db_conn_info
 
     @app.get("/")
