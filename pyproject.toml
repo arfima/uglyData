@@ -13,7 +13,6 @@ dependencies = [
     "elasticsearch>=8.7.0",
     "nest_asyncio",
     "orjson>=3.8.11",
-    "pandas>=2.0.3,<2.3",
     "protobuf",
     "psycopg[binary,pool]",
     "pyarrow>=12.0.0",
