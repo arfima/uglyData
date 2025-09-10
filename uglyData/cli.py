@@ -63,28 +63,28 @@ cli = typer.Typer(help=APP_DESCRIPTION)
 @cli.command()
 def run(
     host: Annotated[
-        str, typer.Argument(envvar="API_HOST", help="Api host.")
+        str, typer.Option(envvar="API_HOST", help="Api host.")
     ] = "localhost",
-    port: Annotated[int, typer.Argument(envvar="API_PORT", help="Api port.")] = 34543,
+    port: Annotated[int, typer.Option(envvar="API_PORT", help="Api port.")] = 34543,
     bucket: Annotated[
         str,
-        typer.Argument(envvar="MINIO_BUCKET", help="Minio bucket name."),
+        typer.Option(envvar="MINIO_BUCKET", help="Minio bucket name."),
     ] = "foo",
     access_key: Annotated[
         str,
-        typer.Argument(envvar="MINIO_ACCESS_KEY", help="Minio access key."),
+        typer.Option(envvar="MINIO_ACCESS_KEY", help="Minio access key."),
     ] = "minioadmin",
     secret_key: Annotated[
         str,
-        typer.Argument(envvar="MINIO_SECRET_KEY", help="Minio secret key."),
+        typer.Option(envvar="MINIO_SECRET_KEY", help="Minio secret key."),
     ] = "minioadmin",
     s3_endpoint: Annotated[
         str,
-        typer.Argument(envvar="MINIO_S3_ENDPOINT", help="Minio S3 endpoint."),
+        typer.Option(envvar="MINIO_S3_ENDPOINT", help="Minio S3 endpoint."),
     ] = "http://localhost:9000",
     api_db_conn_info: Annotated[
         str,
-        typer.Argument(envvar="API_DB_CONN_INFO", help="Database connection info."),
+        typer.Option(envvar="API_DB_CONN_INFO", help="Database connection info."),
     ] = "service=dbusermain",
 ):
     """Run the UglyData API server."""
@@ -176,7 +176,7 @@ def run(
         """Get information about the current user."""
         return user
 
-    uvicorn.run(app_v1, host=host, port=port)
+    uvicorn.run(app, host=host, port=port)
 
 
 if __name__ == "__main__":
