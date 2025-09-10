@@ -10,6 +10,17 @@ readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Arfima", email = "dev@arfima.com" }]
 dependencies = [
+    "elasticsearch>=8.7.0",
+    "nest_asyncio",
+    "orjson>=3.8.11",
+    "pandas>=2.0.3,<2.3",
+    "protobuf",
+    "psycopg[binary,pool]",
+    "pyarrow>=12.0.0",
+    "pycountry",
+    "python_dateutil>=2.8.2",
+    "PyYAML>=6.0",
+    "websockets>=11.0.3",
     "aiohttp>=3.8.5",
     "async_lru>=2.0.2",
     "ecs-logging>=2.0.0",
@@ -18,10 +29,14 @@ dependencies = [
     "fastapi>=0.103.0",
     "pydantic >= 2.3.0",
     "uvicorn[standard]>=0.22.0",
+    "s3fs>=2025.9.0",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["uglyData"]
+
+[project.scripts]
+uglydata_api = "uglyData.cli:cli"
 
 [tool.hatch.build]
 skip-excluded-dirs = true
