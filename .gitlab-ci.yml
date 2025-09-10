@@ -1,0 +1,67 @@
+image: nikolaik/python-nodejs:python3.12-nodejs22
+
+stages:
+  - test
+  - package
+  - deploy-docs
+  - deploy-be
+
+backend-tests:
+  stage: test
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm
+  needs: []
+  tags:
+    - uglydata
+  script:
+    - apt update; apt install git -y
+    - uv pip install .[api,dev] --system
+    - pytest -v tests
+  variables:
+    TESTCONTAINERS_HOST_OVERRIDE: "host.docker.internal"
+
+pages:
+  stage: deploy-docs
+  script:
+    - npm install -g jsdoc
+    - pip install .[docs,api]
+    - sphinx-build -b html docs/ public/
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+
+
+packaging:
+  stage: package
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm
+  rules:
+    - if: "$CI_COMMIT_TAG && ($CI_COMMIT_TAG !~ /^.*-.*$/ || $CI_COMMIT_TAG =~ /py/)"
+
+  script:
+    - apt update; apt install git -y
+    - uv pip install hatch hatch-vcs --system
+    - hatch build
+    - hatch publish -r ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi
+
+deploy-backend:
+  stage: deploy-be
+  image: docker:latest
+  services:
+    - docker:dind
+  tags:
+    - secretbuilder
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  rules:
+    - if: "$CI_COMMIT_TAG =~ /be/"
+  script:
+    - echo === Creating backend image ===
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - >
+      docker build -f "${CI_PROJECT_DIR}/Dockerfile.prod" 
+      --push 
+      -t "${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG%%[-+]*}" 
+      -t "${CI_REGISTRY_IMAGE}:latest" 
+      --secret id=UV_EXTRA_INDEX_URL 
+      "${CI_PROJECT_DIR}"
