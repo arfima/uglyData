@@ -2,29 +2,27 @@ import os
 import s3fs
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
-from typing import Optional
 
 router = APIRouter(prefix="/s3", tags=["s3"])
-
-_fs: Optional[s3fs.S3FileSystem] = None
 
 
 def get_fs() -> s3fs.S3FileSystem:
     """Singleton del filesystem S3."""
-    global _fs
-    if _fs is None:
-        _fs = s3fs.S3FileSystem(
-            anon=False,
-            key=os.getenv("AWS_ACCESS_KEY_ID"),
-            secret=os.getenv("AWS_SECRET_ACCESS_KEY"),
-            token=os.getenv("AWS_SESSION_TOKEN"),
-            client_kwargs={"endpoint_url": os.getenv("S3_ENDPOINT")},
-            config_kwargs={"s3": {"addressing_style": "path"}},
-        )
-    return _fs
+    print("get_fs called")
+    s3 = s3fs.S3FileSystem(
+        anon=False,
+        key=os.getenv("ACCESS_KEY"),
+        secret=os.getenv("SECRET_KEY"),
+        client_kwargs={"endpoint_url": os.getenv("S3_ENDPOINT")},
+        config_kwargs={"s3": {"addressing_style": "path"}},
+    )
+
+    print("s3 bucket list:", s3.ls(""))
+
+    return s3
 
 
-BUCKET = os.environ.get("BUCKET", "nuts")
+BUCKET = os.environ.get("BUCKET", "foo")
 
 
 @router.get("/list")

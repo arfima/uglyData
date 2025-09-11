@@ -3,7 +3,6 @@ import logging
 import os
 import sys
 from contextlib import asynccontextmanager
-
 from uglyData.api.models import User
 from elasticapm.contrib.starlette import ElasticAPM, make_apm_client
 from fastapi import Depends, FastAPI
@@ -37,7 +36,6 @@ from typing import Annotated
 import typer
 import uvicorn
 
-
 LOG = logging.getLogger(__name__)
 
 LOG.debug("Starting app")
@@ -64,8 +62,8 @@ cli = typer.Typer(help=APP_DESCRIPTION)
 def run(
     host: Annotated[
         str, typer.Option(envvar="API_HOST", help="Api host.")
-    ] = "localhost",
-    port: Annotated[int, typer.Option(envvar="API_PORT", help="Api port.")] = 34543,
+    ] = "10.66.40.13",
+    port: Annotated[int, typer.Option(envvar="API_PORT", help="Api port.")] = 15555,
     bucket: Annotated[
         str,
         typer.Option(envvar="MINIO_BUCKET", help="Minio bucket name."),
@@ -144,12 +142,6 @@ def run(
 
     app.mount("/api/v1", app_v1)
 
-    os.environ["BUCKET"] = bucket
-    os.environ["ACCESS_KEY"] = access_key
-    os.environ["SECRET_KEY"] = secret_key
-    os.environ["S3_ENDPOINT"] = s3_endpoint
-    os.environ["API_DB_CONN_INFO"] = api_db_conn_info
-
     @app.get("/")
     async def read_root():
         return RedirectResponse(url="/api/v1/redoc")
@@ -178,9 +170,12 @@ def run(
 
     uvicorn.run(app, host=host, port=port)
 
+    os.environ["BUCKET"] = bucket
+    os.environ["ACCESS_KEY"] = access_key
+    os.environ["SECRET_KEY"] = secret_key
+    os.environ["S3_ENDPOINT"] = s3_endpoint
+    os.environ["API_DB_CONN_INFO"] = api_db_conn_info
+
 
 if __name__ == "__main__":
-    from dotenv import load_dotenv
-
-    load_dotenv()
     cli(standalone_mode=False)
