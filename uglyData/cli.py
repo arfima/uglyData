@@ -46,7 +46,7 @@ APP_DESCRIPTION = "UglyData API"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # connect to the db
+    """Connect to the database on startup and disconnect on shutdown."""
     if "API_DB_CONN_INFO" not in os.environ:
         raise KeyError("API_DB_CONN_INFO not set in environment")
     await DB.connect(os.environ["API_DB_CONN_INFO"])
@@ -86,6 +86,12 @@ def run(
     ] = "service=dbusermain",
 ):
     """Run the UglyData API server."""
+    os.environ["BUCKET"] = bucket
+    os.environ["ACCESS_KEY"] = access_key
+    os.environ["SECRET_KEY"] = secret_key
+    os.environ["S3_ENDPOINT"] = s3_endpoint
+    os.environ["API_DB_CONN_INFO"] = api_db_conn_info
+
     app = FastAPI(
         title="Arfima Data API",
         description="API for Arfima Database",
@@ -169,12 +175,6 @@ def run(
         return user
 
     uvicorn.run(app, host=host, port=port)
-
-    os.environ["BUCKET"] = bucket
-    os.environ["ACCESS_KEY"] = access_key
-    os.environ["SECRET_KEY"] = secret_key
-    os.environ["S3_ENDPOINT"] = s3_endpoint
-    os.environ["API_DB_CONN_INFO"] = api_db_conn_info
 
 
 if __name__ == "__main__":
